@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Projection Display</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: black; /* Optional: just for better visibility of shapes */
+        }
+        iframe {
+            position: absolute;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const shapes = JSON.parse(localStorage.getItem('projectionShapes')) || [];
+
+        shapes.forEach((shape, index) => {
+            const iframe = document.createElement('iframe');
+            iframe.src = "about:blank"; // Change this to your desired content URL
+
+            // Determine the bounding box of the shape
+            const bounds = shape.reduce((acc, {x, y}) => ({
+                left: Math.min(x, acc.left),
+                top: Math.min(y, acc.top),
+                right: Math.max(x, acc.right),
+                bottom: Math.max(y, acc.bottom),
+            }), { left: Infinity, top: Infinity, right: 0, bottom: 0 });
+
+            iframe.style.left = `${bounds.left}px`;
+            iframe.style.top = `${bounds.top}px`;
+            iframe.style.width = `${bounds.right - bounds.left}px`;
+            iframe.style.height = `${bounds.bottom - bounds.top}px`;
+            iframe.style.clipPath = `polygon(${shape.map(({x, y}) => `${x - bounds.left}px ${y - bounds.top}px`).join(', ')})`;
+
+            document.body.appendChild(iframe);
+
+            // Example: Load HTML content into the iframe
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write('<p>Your HTML content here</p>'); // Replace with actual HTML content
+            iframeDoc.close();
+        });
+    });
+</script>
+
+</body>
+</html>
